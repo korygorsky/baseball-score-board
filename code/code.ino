@@ -1,87 +1,55 @@
-/* Arduino 7 Segment scoreboard 
- * Using the MAX7219CNG LED Driver
- 
-Initial Version Created by Yvan / https://Brainy-Bits.com
+#include "LedControl.h"  // Library for communication with 7-segment display
 
-This code is in the public domain...
+// Initialize the LedControl object (DIN, CLK, LOAD, number of MAX7219 chips)
+LedControl lc = LedControl(12, 11, 10, 1);  
 
-You can: copy it, use it, modify it, share it or just plain ignore it!
-Thx!
-
-*/
-
-#include "LedControl.h"  // Library used for communcation with 7 segment
-
-LedControl lc=LedControl(12,11,10,1);  //  (DIN, CLK, LOAD, number of Max7219 chips)
-
-// Variable to hold current scores
-int displayone=0;
-int displaytwo=0;
-
-// Variables to split whole number into single digits
-int rightdigit;
-int leftdigit;
+// Variables to hold current scores
+int scorePlayerOne = 0;
+int scorePlayerTwo = 0;
 
 // Switches pin connection to Arduino UNO
-#define switchone 2
-#define switchtwo 3
+const int switchPlayerOne = 2;
+const int switchPlayerTwo = 3;
 
-
-void setup() {
-  pinMode(switchone,INPUT_PULLUP);
-  pinMode(switchtwo,INPUT_PULLUP);
-  
-  lc.shutdown(0,false);  // Wake up MAX7219
-
-  lc.setIntensity(0,7);  // Set brightness to medium
-
-  lc.clearDisplay(0);  // Clear all displays connected to MAX7219 chip #
-
-// Put zeros on both displays at startup
-  
-  lc.setDigit(0,0,0,false);  // (Max7219 chip #, Digit, value, DP on or off)
-  lc.setDigit(0,1,0,false);
-  
-  lc.setDigit(0,2,0,false);
-  lc.setDigit(0,3,0,false);
-
+// Function to initialize the 7-segment display
+void initializeDisplay() {
+  lc.shutdown(0, false);  // Wake up MAX7219
+  lc.setIntensity(0, 7);  // Set brightness to medium
+  lc.clearDisplay(0);     // Clear all displays connected to MAX7219 chip
+  // Initialize both displays to show zeros
+  lc.setDigit(0, 0, 0, false);  
+  lc.setDigit(0, 1, 0, false);
+  lc.setDigit(0, 2, 0, false);
+  lc.setDigit(0, 3, 0, false);
 }
 
+// Function to update the display for a given player
+void updateDisplay(int player, int score) {
+  int rightDigit = score % 10;
+  int leftDigit = (score % 100) / 10;
+  int digitOffset = (player == 1) ? 0 : 2;
+  lc.setDigit(0, digitOffset, leftDigit, false);
+  lc.setDigit(0, digitOffset + 1, rightDigit, false);
+}
 
-void loop() { 
-
-  // If switch 1 is clicked
-  if (!digitalRead(switchone)) {
-    
-    displayone++;  // Increase score by 1
-  
-    // convert whole number to single digits
-    rightdigit=displayone%10;
-    leftdigit=displayone%100/10;
-
-    // Display extracted digits on the display
-    lc.setDigit(0,0,leftdigit,false);
-    lc.setDigit(0,1,rightdigit,false);
-
-    
+// Function to handle button press for a given player
+void handleButtonPress(int switchPin, int &score, int player) {
+  if (!digitalRead(switchPin)) {
+    score++;  // Increase score by 1
+    updateDisplay(player, score);
     // Wait until switch is released to continue
-    while (!digitalRead(switchone)) { 
-    }
+    while (!digitalRead(switchPin)) {}
     delay(5);  // Small delay to debounce the switch
   }
+}
 
-    if (!digitalRead(switchtwo)) {
-      
-    displaytwo++;
-  
-    rightdigit=displaytwo%10;
-    leftdigit=displaytwo%100/10;
+void setup() {
+  pinMode(switchPlayerOne, INPUT_PULLUP);
+  pinMode(switchPlayerTwo, INPUT_PULLUP);
+  initializeDisplay();
+}
 
-    lc.setDigit(0,2,leftdigit,false);
-    lc.setDigit(0,3,rightdigit,false);
-
-    while (!digitalRead(switchtwo)) { 
-    }    
-    delay(5);
-  }
+void loop() {
+  handleButtonPress(switchPlayerOne, scorePlayerOne, 1);
+  handleButtonPress(switchPlayerTwo, scorePlayerTwo, 2);
 }

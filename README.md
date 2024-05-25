@@ -1,1 +1,2 @@
-# baseball-score-board
+# Arduino Baseball Scoreboard
+

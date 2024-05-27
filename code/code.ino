@@ -53,22 +53,33 @@ void updateDisplay(int chip, int player, int score)
 }
 
 // Function to handle button press for a given player
-void handleButtonPress(int chip, int switchPin, int &score, int player)
+void handleButtonPress(int chip, int switchPin, int &score)
 {
   if (!digitalRead(switchPin))
   {
     score++; // Increase score by 1
-    updateDisplay(chip, player, score);
+    if (score > 9) {
+      score = 0;
+    }
+    
+    Serial.print("Switch on pin ");
+    Serial.print(switchPin);
+    Serial.print(" pressed. New score: ");
+    Serial.println(score);
+
+    
+    lc.setDigit(chip, 0, score, false);
     // Wait until switch is released to continue
     while (!digitalRead(switchPin))
     {
     }
-    delay(5); // Small delay to debounce the switch
+    delay(1000); // Small delay to debounce the switch
   }
 }
 
 void setup()
 {
+  Serial.begin(9600); // Initialize Serial communication at 9600 baud rate
   pinMode(switchPlayerOne, INPUT_PULLUP);
   pinMode(switchPlayerTwo, INPUT_PULLUP);
   initializeDisplay();
@@ -76,6 +87,6 @@ void setup()
 
 void loop()
 {
-  handleButtonPress(0, switchPlayerOne, scorePlayerOne, 1);
-  handleButtonPress(0, switchPlayerTwo, scorePlayerTwo, 2);
+  handleButtonPress(0, switchPlayerOne, scorePlayerOne);
+  //handleButtonPress(0, switchPlayerTwo, scorePlayerTwo, 2);
 }

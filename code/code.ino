@@ -1,7 +1,7 @@
 #include "LedControl.h" // Library for communication with 7-segment display
 
 // Number of MAX7219 chips
-const int numChips = 1;
+const int numChips = 3;
 
 // Initialize the LedControl object (DIN, CLK, LOAD, number of MAX7219 chips)
 LedControl lc = LedControl(12, 11, 10, numChips);
@@ -11,7 +11,7 @@ int scorePlayerOne = 0;
 int scorePlayerTwo = 0;
 
 // Switches pin connection to Arduino UNO
-const int switchPlayerOne = 2;
+const int switchPlayerOne = 4;
 const int switchPlayerTwo = 3;
 
 // FUTURE USE:
@@ -35,7 +35,10 @@ void initializeDisplay()
     // Initialize all displays to show zeros
     for (int digit = 0; digit < 8; digit++)
     {
-      lc.setDigit(chip, digit, 0, false);
+      Serial.print("initialize digit ");
+      Serial.print(chip);
+      Serial.print(digit);
+      lc.setDigit(chip, digit, 8, false);
     }
   }
 }
@@ -73,7 +76,7 @@ void handleButtonPress(int chip, int switchPin, int &score)
     while (!digitalRead(switchPin))
     {
     }
-    delay(1000); // Small delay to debounce the switch
+    delay(500); // Small delay to debounce the switch
   }
 }
 
@@ -81,12 +84,19 @@ void setup()
 {
   Serial.begin(9600); // Initialize Serial communication at 9600 baud rate
   pinMode(switchPlayerOne, INPUT_PULLUP);
-  pinMode(switchPlayerTwo, INPUT_PULLUP);
-  initializeDisplay();
+  //pinMode(switchPlayerTwo, INPUT_PULLUP);
+  //initializeDisplay();
+  //lc.setDigit(0, 0, 8, false);
+  lc.shutdown(0, false);  // Wake up displays
+  lc.setIntensity(0, 8);  // Set intensity levels
+  lc.clearDisplay(0);    
+  lc.setDigit(0, 0, 0, false); 
 }
 
 void loop()
 {
   handleButtonPress(0, switchPlayerOne, scorePlayerOne);
+
+  //lc.setDigit(0, 0, 3, true);
   //handleButtonPress(0, switchPlayerTwo, scorePlayerTwo, 2);
 }
